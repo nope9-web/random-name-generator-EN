@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Random Name Generator</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d0f;
+      --surface: #16161a;
+      --surface2: #1e1e24;
+      --border: #2a2a35;
+      --accent: #e8c97a;
+      --accent2: #c97aaa;
+      --star: #f5c542;
+      --star-empty: #3a3a4a;
+      --green: #5fd080;
+      --text: #f0eff4;
+      --text-muted: #7c7c96;
+      --radius: 14px;
+      --shadow: 0 8px 32px rgba(0,0,0,0.4);
+      --transition: 0.22s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    html, body { min-height: 100vh; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'DM Sans', sans-serif; font-weight: 400; line-height: 1.6;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 0 16px 60px;
+      background-image:
+        radial-gradient(ellipse 60% 40% at 20% 10%, rgba(232,201,122,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 50% at 80% 90%, rgba(201,122,170,0.06) 0%, transparent 60%);
+    }
+
+    /* AD PLACEHOLDERS */
+    #top-ad, #bottom-ad {
+      width: 100%; max-width: 728px; min-height: 90px;
+      background: var(--surface); border: 1px dashed var(--border);
+      border-radius: var(--radius); display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
+      margin: 24px auto 0;
+    }
+    /* === INSERT TOP BANNER AD SCRIPT INSIDE #top-ad === */
+    #top-ad { margin-bottom: 0; }
+    /* === INSERT BOTTOM BANNER AD SCRIPT INSIDE #bottom-ad === */
+    #bottom-ad { margin-top: 24px; }
+
+    /* HEADER */
+    header { width: 100%; max-width: 700px; text-align: center; padding: 52px 0 32px; }
+    .header-eyebrow {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 12px; opacity: 0.85;
+    }
+    header h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(2.2rem, 6vw, 3.6rem); font-weight: 900;
+      line-height: 1.08; letter-spacing: -0.02em;
+      background: linear-gradient(135deg, var(--text) 40%, var(--accent) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; margin-bottom: 14px;
+    }
+    header p { color: var(--text-muted); font-size: 15px; max-width: 440px; margin: 0 auto; }
+
+    /* MAIN CARD */
+    main { width: 100%; max-width: 700px; }
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: calc(var(--radius) * 1.5); padding: 32px; box-shadow: var(--shadow);
+    }
+
+    /* STATS */
+    .stats {
+      display: flex; gap: 20px; padding: 14px 18px;
+      background: var(--surface2); border-radius: var(--radius);
+      border: 1px solid var(--border); flex-wrap: wrap; margin-bottom: 24px;
+    }
+    .stat-item { display: flex; flex-direction: column; gap: 2px; }
+    .stat-value { font-size: 18px; font-weight: 600; color: var(--accent); line-height: 1; }
+    .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+
+    .divider { border: none; border-top: 1px solid var(--border); margin: 0 0 24px; }
+
+    /* INPUT */
+    .input-section { margin-bottom: 20px; }
+    .input-label {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; font-weight: 600; color: var(--text-muted);
+      letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 10px;
+    }
+    .input-label .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    .input-wrapper { position: relative; }
+    textarea {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius); color: var(--text);
+      font-family: 'DM Sans', sans-serif; font-size: 14px; line-height: 1.6;
+      padding: 14px 48px 14px 16px; resize: vertical; min-height: 88px;
+      transition: border-color var(--transition), box-shadow var(--transition); outline: none;
+    }
+    textarea::placeholder { color: var(--text-muted); opacity: 0.6; }
+    textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,201,122,0.12); }
+    .clear-btn {
+      position: absolute; top: 10px; right: 10px;
+      background: none; border: none; cursor: pointer; color: var(--text-muted);
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      transition: background var(--transition), color var(--transition); font-size: 16px;
+    }
+    .clear-btn:hover { background: var(--border); color: var(--text); }
+    .input-hint { margin-top: 8px; font-size: 12px; color: var(--text-muted); }
+
+    /* FILTER */
+    .filter-row { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
+    .filter-chip {
+      padding: 7px 16px; border-radius: 999px; border: 1px solid var(--border);
+      background: transparent; color: var(--text-muted);
+      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: all var(--transition);
+    }
+    .filter-chip:hover { border-color: var(--accent); color: var(--accent); }
+    .filter-chip.active { background: rgba(232,201,122,0.12); border-color: var(--accent); color: var(--accent); }
+
+    /* BUTTONS */
+    .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 28px; }
+    .btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 15px 20px; border-radius: var(--radius); border: none;
+      font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: all var(--transition); letter-spacing: 0.01em; min-height: 52px;
+    }
+    .btn-primary { background: var(--accent); color: #0d0d0f; }
+    .btn-primary:hover { background: #f0d68a; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(232,201,122,0.25); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { border-color: var(--accent2); color: var(--accent2); transform: translateY(-2px); }
+    .btn-secondary:active { transform: translateY(0); }
+
+    /* RESULT SECTION */
+    .result-section {
+      display: none; flex-direction: column; gap: 14px;
+      animation: fadeSlideUp 0.35s cubic-bezier(0.4,0,0.2,1) forwards;
+    }
+    .result-section.visible { display: flex; }
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .result-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.16em;
+      text-transform: uppercase; color: var(--text-muted); margin-bottom: 2px;
+    }
+
+    /* single result */
+    .result-single {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 22px 20px;
+    }
+    .result-single-top {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 14px; margin-bottom: 14px;
+    }
+    .result-name {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(1.8rem, 5vw, 2.8rem); font-weight: 700; line-height: 1;
+      background: linear-gradient(120deg, var(--text) 0%, var(--accent2) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; word-break: break-word;
+    }
+    @keyframes highlight {
+      0%   { box-shadow: 0 0 0 0 rgba(232,201,122,0.45); }
+      40%  { box-shadow: 0 0 0 10px rgba(232,201,122,0.10); }
+      100% { box-shadow: 0 0 0 0 rgba(232,201,122,0); }
+    }
+    .result-single.flash { animation: highlight 0.55s ease forwards; }
+
+    /* multi results */
+    .result-multi { display: flex; flex-direction: column; gap: 8px; }
+    .multi-name-item {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 12px 16px;
+      opacity: 0; transform: translateX(-12px);
+      animation: staggerIn 0.3s ease forwards;
+    }
+    @keyframes staggerIn { to { opacity: 1; transform: translateX(0); } }
+    .multi-name-row {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; margin-bottom: 10px;
+    }
+    .multi-name-left { display: flex; align-items: center; gap: 10px; }
+    .multi-name-index { font-size: 11px; font-weight: 600; color: var(--text-muted); min-width: 20px; }
+    .multi-name-text {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.2rem; font-weight: 700; color: var(--text);
+    }
+
+    /* STAR WIDGET */
+    .star-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .stars { display: flex; gap: 3px; align-items: center; }
+    .star {
+      font-size: 22px; cursor: pointer; color: var(--star-empty);
+      transition: color 0.14s, transform 0.14s; user-select: none; line-height: 1;
+    }
+    .star:hover, .star.hover { color: var(--star); transform: scale(1.2); }
+    .star.filled { color: var(--star); }
+    .star.voted { cursor: default; }
+    .star-summary {
+      font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 5px;
+    }
+    .star-summary .avg { font-weight: 700; color: var(--star); font-size: 13px; }
+    .voted-badge {
+      font-size: 11px; color: var(--green); font-weight: 600;
+      background: rgba(95,208,128,0.1); border: 1px solid rgba(95,208,128,0.25);
+      border-radius: 6px; padding: 2px 8px; display: none;
+    }
+    .voted-badge.show { display: inline-block; }
+    .vote-limit-msg {
+      font-size: 11px; color: var(--accent2); font-weight: 500;
+      background: rgba(201,122,170,0.08); border: 1px solid rgba(201,122,170,0.2);
+      border-radius: 6px; padding: 2px 8px; display: none;
+    }
+    .vote-limit-msg.show { display: inline-block; }
+
+    /* COPY BUTTONS */
+    .copy-btn-inline {
+      flex-shrink: 0; background: none; border: 1px solid var(--border);
+      color: var(--text-muted); border-radius: 8px; padding: 5px 11px;
+      font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500;
+      cursor: pointer; display: flex; align-items: center; gap: 5px;
+      transition: all var(--transition); white-space: nowrap;
+    }
+    .copy-btn-inline:hover { border-color: var(--accent); color: var(--accent); }
+    .copy-btn-inline.copied { border-color: var(--green); color: var(--green); }
+    .copy-all-btn {
+      align-self: flex-start; background: none; border: 1px solid var(--border);
+      color: var(--text-muted); border-radius: var(--radius); padding: 10px 18px;
+      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+      cursor: pointer; display: flex; align-items: center; gap: 7px; transition: all var(--transition);
+    }
+    .copy-all-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+    .copy-all-btn.copied { border-color: var(--green); color: var(--green); }
+
+    /* LEADERBOARD */
+    .leaderboard {
+      margin-top: 12px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: calc(var(--radius) * 1.5);
+      padding: 24px 28px; box-shadow: var(--shadow);
+    }
+    .lb-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .lb-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.15rem; font-weight: 700; color: var(--text);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .lb-clear-btn {
+      background: none; border: 1px solid var(--border); color: var(--text-muted);
+      border-radius: 8px; padding: 5px 12px; font-family: 'DM Sans', sans-serif;
+      font-size: 12px; cursor: pointer; transition: all var(--transition);
+    }
+    .lb-clear-btn:hover { border-color: #e87a7a; color: #e87a7a; }
+    .lb-list { display: flex; flex-direction: column; gap: 8px; }
+    .lb-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 14px; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      transition: border-color var(--transition);
+    }
+    .lb-item:hover { border-color: rgba(232,201,122,0.3); }
+    .lb-rank { font-size: 13px; font-weight: 700; color: var(--text-muted); min-width: 22px; text-align: center; }
+    .lb-rank.gold   { color: #f5c542; }
+    .lb-rank.silver { color: #b0b8c8; }
+    .lb-rank.bronze { color: #cd7f5a; }
+    .lb-name {
+      flex: 1; font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.05rem; font-weight: 700; color: var(--text);
+    }
+    .lb-stars { display: flex; gap: 2px; }
+    .lb-star { font-size: 14px; color: var(--star-empty); }
+    .lb-star.filled { color: var(--star); }
+    .lb-info { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
+    .lb-avg { font-weight: 700; color: var(--star); font-size: 13px; }
+    .lb-votes { font-size: 10px; color: var(--text-muted); }
+    .lb-empty { text-align: center; padding: 28px 0; color: var(--text-muted); font-size: 14px; }
+    .lb-empty .emoji { font-size: 2rem; display: block; margin-bottom: 8px; }
+
+    /* FOOTER */
+    footer { margin-top: 40px; text-align: center; font-size: 12px; color: var(--text-muted); opacity: 0.55; }
+
+    /* RESPONSIVE */
+    @media (max-width: 500px) {
+      .card, .leaderboard { padding: 20px 14px; }
+      .btn-row { grid-template-columns: 1fr; }
+      .result-single-top { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP AD BANNER -->
+  <div id="top-ad">
+    <!-- INSERT TOP BANNER AD SCRIPT HERE -->
+    Advertisement (728×90)
+  </div>
+
+  <!-- HEADER -->
+  <header>
+    <p class="header-eyebrow">✦ Free Tool</p>
+    <h1>Random Name<br>Generator</h1>
+    <p>Generate English names instantly — from a library of 1,000 names, or supply your own list.</p>
+  </header>
+
+  <!-- MAIN TOOL -->
+  <main>
+    <div class="card">
+
+      <!-- Stats (no pool count) -->
+      <div class="stats">
+        <div class="stat-item">
+          <span class="stat-value" id="stat-generated">0</span>
+          <span class="stat-label">Generated</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" id="stat-mode">Default</span>
+          <span class="stat-label">Source</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" id="stat-votes-left">5</span>
+          <span class="stat-label">Votes Left</span>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- Custom Input -->
+      <div class="input-section">
+        <div class="input-label"><span class="dot"></span>Custom Name List (optional)</div>
+        <div class="input-wrapper">
+          <textarea id="custom-names"
+            placeholder="Type or paste names here, separated by commas, newlines, or semicolons…&#10;e.g. Alice, Bob, Charlie"
+            aria-label="Custom name list"></textarea>
+          <button class="clear-btn" id="clear-input-btn" title="Clear input">✕</button>
+        </div>
+
+      </div>
+
+      <!-- Gender Filter -->
+      <div class="filter-row" id="gender-filter">
+        <button class="filter-chip active" data-gender="all">All Names</button>
+        <button class="filter-chip" data-gender="male">Male</button>
+        <button class="filter-chip" data-gender="female">Female</button>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btn-generate-one">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          Random Name
+        </button>
+        <button class="btn btn-secondary" id="btn-generate-five">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          Generate × 5
+        </button>
+      </div>
+
+      <!-- Results (filled by JS) -->
+      <div class="result-section" id="result-section" aria-live="polite" aria-atomic="true"></div>
+
+    </div>
+
+    <!-- LEADERBOARD -->
+    <div class="leaderboard">
+      <div class="lb-header">
+        <div class="lb-title">🏆 Top Rated Names</div>
+        <button class="lb-clear-btn" id="lb-clear-btn">Reset</button>
+      </div>
+      <div class="lb-list" id="lb-list">
+        <div class="lb-empty"><span class="emoji">⭐</span>Rate names to see them here</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- BOTTOM AD BANNER -->
+  <div id="bottom-ad">
+    <!-- INSERT BOTTOM BANNER AD SCRIPT HERE -->
+    Advertisement (728×90)
+  </div>
+
+  <footer>&copy; 2025 Random Name Generator</footer>
+
+  <script>
+    // ================================================================
+    // NAME DATABASE — 1,000 English first names
+    // ================================================================
+    const NAMES = {
+      male: [
+        "Aaron","Abel","Abraham","Adam","Addison","Adrian","Aiden","Alan","Albert","Alden",
+        "Aldric","Alec","Alexander","Alfred","Alistair","Allen","Alton","Alvin","Ambrose","Amos",
+        "Andrew","Angus","Ansel","Anthony","Archibald","Archer","Armand","Arnold","Arthur","Ashton",
+        "Atticus","Austin","Axel","Bailey","Baldwin","Barrett","Barry","Bart","Bastian","Beckett",
+        "Benedict","Benjamin","Bennett","Bernard","Blake","Blaine","Bolton","Boyd","Bradley","Brady",
+        "Brandon","Brendan","Brennan","Brent","Brett","Brian","Brice","Brock","Broderick","Brody",
+        "Brooks","Bruce","Bruno","Bryan","Bryant","Bryce","Byron","Caden","Calhoun","Calvin",
+        "Camden","Cameron","Carl","Carlton","Carson","Carter","Casey","Cedric","Chad","Chandler",
+        "Charles","Chase","Chester","Christian","Christopher","Clark","Clay","Clayton","Clement","Cliff",
+        "Clifford","Clinton","Cody","Colby","Colin","Colton","Connor","Conrad","Cooper","Corey",
+        "Cornell","Craig","Creighton","Curtis","Cyrus","Dale","Dalton","Damian","Daniel","Dante",
+        "Darian","Darrell","Darwin","David","Dean","Declan","Dennis","Derek","Desmond","Devin",
+        "Donovan","Douglas","Drake","Drew","Duncan","Dylan","Edmund","Edward","Edwin","Eli",
+        "Elias","Elliot","Ellis","Elton","Emerson","Emil","Emmett","Eric","Ernest","Ethan",
+        "Eugene","Evan","Everett","Ezra","Felix","Ferdinand","Finn","Fletcher","Floyd","Francis",
+        "Frank","Franklin","Frederick","Garrett","Gary","Gavin","Geoffrey","George","Gerald","Gilbert",
+        "Glenn","Gordon","Graham","Grant","Gregory","Griffin","Grover","Gunnar","Harold","Harris",
+        "Harvey","Hayes","Henry","Herbert","Homer","Howard","Hoyt","Hudson","Hugh","Hugo",
+        "Hunter","Ian","Irving","Isaac","Isaiah","Ivan","Jack","Jackson","Jacob","James",
+        "Jasper","Jeffrey","Jeremy","Jerome","Jesse","Joel","John","Jonas","Jonathan","Jordan",
+        "Joseph","Joshua","Julian","Julius","Justin","Kelvin","Kenneth","Kevin","Knox","Kyle",
+        "Lance","Lawrence","Leland","Leonard","Levi","Lewis","Liam","Lincoln","Logan","Lorenzo",
+        "Louis","Lucas","Luther","Malcolm","Marcus","Mark","Marshall","Martin","Mason","Maxwell",
+        "Miles","Mitchell","Montgomery","Morgan","Murray","Nathan","Neil","Nelson","Nicholas","Noah",
+        "Nolan","Norman","Oakley","Oliver","Orion","Oscar","Owen","Palmer","Patrick","Paul",
+        "Paxton","Percy","Peter","Philip","Porter","Preston","Quinn","Raymond","Reed","Reid",
+        "Remy","Rhett","Richard","Robert","Roland","Ronald","Ronan","Ross","Roy","Rupert",
+        "Russell","Ryan","Ryder","Sampson","Samuel","Scott","Sean","Seth","Silas","Simon",
+        "Solomon","Spencer","Stanley","Stephen","Sterling","Steven","Stuart","Sullivan","Tanner","Thomas",
+        "Timothy","Tobias","Todd","Travis","Trent","Trevor","Tristan","Tucker","Turner","Tyler",
+        "Ulysses","Valentine","Victor","Vincent","Wade","Walker","Wallace","Walter","Warren","Wayne",
+        "Wesley","Wiley","William","Willis","Wilson","Winston","Wyatt","Xavier","Zachary","Zane",
+        "Zeke","Zion","Ace","Alastair","Aldo","Alonso","Aloysius","Alphonse","Amory","Beau",
+        "Bishop","Blaze","Bowen","Caspian","Caiden","Callum","Chance","Cobalt","Colt","Corbin",
+        "Damon","Davis","Dax","Decker","Donovan","Duke","Easton","Eli","Emilio","Ezekiel",
+        "Gage","Gideon","Grayson","Griffith","Hadley","Harlan","Heath","Holden","Houston","Ignatius",
+        "Jace","Jagger","Jasper","Jaxon","Jefferson","Jensen","Jonah","Judah","Kaiden","Keaton",
+        "Kieran","Kingston","Kyler","Landon","Lawson","Lennox","Leon","Leopold","Luca","Maddox",
+        "Magnus","Malachi","Maverick","Mercer","Merrick","Monroe","Nash","Orion","Otto","Phoenix",
+        "Phineas","Pierce","Prescott","Rafferty","Ramsey","Rex","Rhys","River","Roman","Romeo",
+        "Rory","Roscoe","Rowan","Ruben","Ruslan","Saul","Soren","Sterling","Stone","Tatum",
+        "Thaddeus","Theo","Theron","Titan","Titus","Troy","Urban","Vance","Vaughn","Vernon",
+        "Virgil","Westley","Whitman","Wilder","Wren","York","Yusuf","Zachariah","Zarek","Zeus"
+      ],
+      female: [
+        "Abigail","Ada","Adaline","Adelaide","Adriana","Agnes","Ainsley","Alana","Alexandra","Alexis",
+        "Alice","Alicia","Alina","Alison","Allison","Alma","Althea","Amanda","Amber","Amelia",
+        "Amity","Amy","Anastasia","Andrea","Angela","Angelica","Anita","Anna","Annabelle","Annette",
+        "Ansley","Aria","Ariel","Arielle","Ashley","Astrid","Athena","Aubrey","Audrey","Aurora",
+        "Ava","Avery","Barbara","Beatrice","Beatrix","Belinda","Bella","Beth","Bethany","Betty",
+        "Beverly","Bianca","Blair","Bonnie","Brenda","Brianna","Bridget","Brittany","Brooke","Callie",
+        "Camille","Carol","Caroline","Carolyn","Cassandra","Catherine","Cecelia","Charlotte","Chelsea","Cheryl",
+        "Christina","Christine","Ciara","Claire","Clara","Clarissa","Claudia","Clementine","Constance","Cora",
+        "Cordelia","Corinne","Courtney","Crystal","Cynthia","Dahlia","Daisy","Dana","Danielle","Daphne",
+        "Dawn","Deborah","Delilah","Diana","Donna","Dora","Dorothy","Eden","Eleanor","Elena",
+        "Elise","Eliza","Elizabeth","Ella","Ellen","Ellie","Eloise","Emilia","Emily","Emma",
+        "Erica","Erin","Esther","Eva","Evangeline","Faith","Felicity","Felicia","Fiona","Florence",
+        "Frances","Freya","Gabrielle","Genevieve","Georgia","Giselle","Gloria","Grace","Gracie","Gwen",
+        "Hailey","Hannah","Harper","Harriet","Hazel","Heather","Helen","Holly","Hope","Imogen",
+        "Ingrid","Iris","Isabella","Ivy","Jacqueline","Jade","Jamie","Janet","Jennifer","Jessica",
+        "Joan","Joanna","Josephine","Joy","Joyce","Julia","Juliet","June","Karen","Katherine",
+        "Kathryn","Kayla","Kelly","Kimberly","Kristen","Laura","Lauren","Lavinia","Leah","Lena",
+        "Lillian","Lily","Linda","Lisa","Lola","Lucy","Lydia","Mabel","Madeline","Madison",
+        "Mae","Maggie","Makayla","Margaret","Maria","Mariana","Marigold","Marissa","Mary","Maya",
+        "Megan","Melissa","Meredith","Mia","Michelle","Mildred","Miranda","Miriam","Molly","Monica",
+        "Morgan","Nadia","Nancy","Naomi","Natalia","Natalie","Neva","Nicole","Nora","Norma",
+        "Olive","Olivia","Paige","Pamela","Patricia","Pauline","Pearl","Penelope","Phoebe","Polly",
+        "Priscilla","Rachel","Rebecca","Renee","Rita","Rose","Roselyn","Rosemary","Ruby","Ruth",
+        "Sabrina","Samantha","Sandra","Sara","Sarah","Savannah","Selena","Shannon","Sharon","Shiloh",
+        "Sierra","Sienna","Simone","Skylar","Sophia","Stella","Stephanie","Susan","Sylvia","Tabitha",
+        "Tamara","Tanya","Taylor","Teresa","Thea","Tiffany","Tilda","Valerie","Vanessa","Vera",
+        "Veronica","Victoria","Violet","Virginia","Vivian","Wendy","Whitney","Wilhelmina","Willow","Winifred",
+        "Xena","Yasmine","Yvette","Yvonne","Zelda","Zoe","Zoey","Zora","Zula","Adeline",
+        "Aida","Aileen","Ailsa","Alise","Allegra","Alyssa","Amara","Amelie","Anabel","Andria",
+        "Anika","Aniya","Annora","Anthea","Antonia","April","Arabella","Ardith","Ariana","Ariella",
+        "Arwen","Aspen","Aster","Aurelia","Autumn","Aveline","Azalea","Blythe","Briar","Calista",
+        "Calla","Cambria","Cameo","Capri","Carina","Cayla","Celeste","Celia","Cerys","Chloe",
+        "Cleo","Clio","Coral","Cressida","Dahlia","Dakota","Delia","Demi","Destiny","Ember",
+        "Emmeline","Esme","Estelle","Evelyn","Everleigh","Fallon","Farrah","Faye","Fern","Fleur",
+        "Francesca","Gemma","Geneva","Harlow","Haven","Heidi","Honor","Isla","Jade","Jaina",
+        "Jasmine","Joelle","Juniper","Justice","Kaia","Kaitlyn","Kali","Karma","Keira","Kezia",
+        "Lacey","Larissa","Lark","Laurel","Lena","Leonie","Lexie","Liesel","Lilia","Linden",
+        "Lior","Liora","Loire","Lori","Luna","Lyra","Mackenzie","Macy","Maeve","Maple",
+        "Marisol","Marlowe","Meadow","Micah","Milan","Millie","Minnie","Mirabelle","Mirela","Misty",
+        "Nadia","Nell","Nova","Oakley","Odette","Orla","Paityn","Paloma","Paris","Patience",
+        "Petra","Pippa","Portia","Priya","Quinn","Raelyn","Reagan","Remi","Renata","Rhiannon",
+        "Riona","Robin","Roma","Rosalie","Rowan","Rue","Sage","Scarlett","Scout","Selene",
+        "Serena","Serenity","Siobhan","Skye","Sloane","Soleil","Sonia","Sorrel","Suki","Summer",
+        "Sunny","Suri","Talia","Tallulah","Tamsin","Tara","Taryn","Tempest","Tess","Thalia",
+        "Tiana","Trinity","Valentina","Valeria","Vashti","Vesper","Vienna","Waverly","Wren","Wynne",
+        "Xanthe","Xiomara","Yara","Yareli","Yolanda","Yvaine","Zaria","Zinnia","Ziva","Zuzu"
+      ]
+    };
+
+    // ================================================================
+    // LOCALSTORAGE KEYS
+    // ================================================================
+    const LS_RATINGS = 'rng_ratings';  // { "Alice": { total: 18, count: 4 } }
+    const LS_VOTED   = 'rng_voted';    // { "Alice": 4 }  — name → stars cast
+    const LS_VCOUNT  = 'rng_vcount';   // number — total votes this device has cast
+
+    const MAX_VOTES = 5; // per device/browser
+
+    // ================================================================
+    // STATE
+    // ================================================================
+    let generatedCount = 0;
+    let activeGender   = 'all';
+
+    // ================================================================
+    // DOM REFS
+    // ================================================================
+    const customNamesEl = document.getElementById('custom-names');
+    const clearInputBtn = document.getElementById('clear-input-btn');
+    const resultSection = document.getElementById('result-section');
+    const btnOne        = document.getElementById('btn-generate-one');
+    const btnFive       = document.getElementById('btn-generate-five');
+    const statGenerated = document.getElementById('stat-generated');
+    const statMode      = document.getElementById('stat-mode');
+    const statVotesLeft = document.getElementById('stat-votes-left');
+    const genderFilter  = document.getElementById('gender-filter');
+    const lbList        = document.getElementById('lb-list');
+    const lbClearBtn    = document.getElementById('lb-clear-btn');
+
+    // ================================================================
+    // RATING STORAGE
+    // ================================================================
+    function loadRatings() {
+      try { return JSON.parse(localStorage.getItem(LS_RATINGS)) || {}; } catch { return {}; }
+    }
+    function saveRatings(r) { localStorage.setItem(LS_RATINGS, JSON.stringify(r)); }
+    function loadVoted() {
+      try { return JSON.parse(localStorage.getItem(LS_VOTED)) || {}; } catch { return {}; }
+    }
+    function saveVoted(v) { localStorage.setItem(LS_VOTED, JSON.stringify(v)); }
+    function getVotesUsed() { return parseInt(localStorage.getItem(LS_VCOUNT) || '0', 10); }
+    function setVotesUsed(n) { localStorage.setItem(LS_VCOUNT, String(n)); }
+    function votesRemaining() { return Math.max(0, MAX_VOTES - getVotesUsed()); }
+
+    // Cast vote — returns true if successful
+    function castVote(name, stars) {
+      if (votesRemaining() <= 0) return false;
+      const voted = loadVoted();
+      if (voted[name] !== undefined) return false; // already voted this name
+
+      const ratings = loadRatings();
+      if (!ratings[name]) ratings[name] = { total: 0, count: 0 };
+      ratings[name].total += stars;
+      ratings[name].count += 1;
+      saveRatings(ratings);
+
+      voted[name] = stars;
+      saveVoted(voted);
+      setVotesUsed(getVotesUsed() + 1);
+      return true;
+    }
+
+    function getNameRating(name) {
+      const r = loadRatings()[name];
+      if (!r || r.count === 0) return { avg: 0, count: 0 };
+      return { avg: r.total / r.count, count: r.count };
+    }
+    function hasVotedFor(name) { return loadVoted()[name] !== undefined; }
+    function getMyVoteFor(name) { return loadVoted()[name] || 0; }
+
+    // ================================================================
+    // UTILITIES
+    // ================================================================
+    function randInt(max) {
+      if (window.crypto && window.crypto.getRandomValues) {
+        const a = new Uint32Array(1);
+        window.crypto.getRandomValues(a);
+        return a[0] % max;
+      }
+      return Math.floor(Math.random() * max);
+    }
+
+    function pickRandom(arr, n) {
+      if (!arr.length) return [];
+      const pool = [...arr], results = [];
+      const count = Math.min(n, pool.length);
+      for (let i = 0; i < count; i++) {
+        const idx = randInt(pool.length);
+        results.push(pool[idx]);
+        pool.splice(idx, 1);
+      }
+      while (results.length < n) results.push(arr[randInt(arr.length)]);
+      return results;
+    }
+
+    function parseCustomNames(raw) {
+      return raw.split(/[,\n;]+/).map(s => s.trim()).filter(Boolean);
+    }
+
+    function getPool() {
+      const raw = customNamesEl.value.trim();
+      if (raw) return parseCustomNames(raw);
+      if (activeGender === 'male')   return [...NAMES.male];
+      if (activeGender === 'female') return [...NAMES.female];
+      return [...NAMES.male, ...NAMES.female];
+    }
+
+    // ================================================================
+    // STAR WIDGET
+    // ================================================================
+    function buildStarWidget(name) {
+      const row      = document.createElement('div');
+      row.className  = 'star-row';
+
+      const starsEl  = document.createElement('div');
+      starsEl.className = 'stars';
+
+      const summary  = document.createElement('div');
+      summary.className = 'star-summary';
+
+      const badge    = document.createElement('span');
+      badge.className = 'voted-badge';
+      badge.textContent = '✓ Voted';
+
+      const limitMsg = document.createElement('span');
+      limitMsg.className = 'vote-limit-msg';
+      limitMsg.textContent = 'Vote limit reached';
+
+      const myVote       = getMyVoteFor(name);
+      const alreadyVoted = hasVotedFor(name);
+      const noVotesLeft  = votesRemaining() <= 0;
+
+      for (let i = 1; i <= 5; i++) {
+        const s = document.createElement('span');
+        s.className = 'star' + (i <= myVote ? ' filled' : '');
+        if (alreadyVoted || noVotesLeft) s.classList.add('voted');
+        s.dataset.val = i;
+        s.textContent = '★';
+        starsEl.appendChild(s);
+      }
+
+      function refreshSummary() {
+        const r = getNameRating(name);
+        if (r.count > 0) {
+          summary.innerHTML = `<span class="avg">${r.avg.toFixed(1)}</span><span>(${r.count} vote${r.count !== 1 ? 's' : ''})</span>`;
+        } else {
+          summary.innerHTML = '<span style="opacity:0.5;font-size:11px">Rate this name</span>';
+        }
+      }
+      refreshSummary();
+
+      if (alreadyVoted)   badge.classList.add('show');
+      else if (noVotesLeft) limitMsg.classList.add('show');
+
+      // Hover & click (only if can vote)
+      if (!alreadyVoted && !noVotesLeft) {
+        starsEl.addEventListener('mousemove', e => {
+          const s = e.target.closest('.star');
+          if (!s) return;
+          const val = +s.dataset.val;
+          starsEl.querySelectorAll('.star').forEach((st, idx) => st.classList.toggle('hover', idx < val));
+        });
+        starsEl.addEventListener('mouseleave', () => {
+          starsEl.querySelectorAll('.star').forEach(s => s.classList.remove('hover'));
+        });
+        starsEl.addEventListener('click', e => {
+          const s = e.target.closest('.star');
+          if (!s) return;
+          const val = +s.dataset.val;
+          if (castVote(name, val)) {
+            starsEl.querySelectorAll('.star').forEach((st, idx) => {
+              st.classList.toggle('filled', idx < val);
+              st.classList.add('voted');
+            });
+            badge.classList.add('show');
+            refreshSummary();
+            updateVotesLeft();
+            renderLeaderboard();
+          } else {
+            limitMsg.classList.add('show');
+          }
+        });
+      }
+
+      row.appendChild(starsEl);
+      row.appendChild(summary);
+      row.appendChild(badge);
+      row.appendChild(limitMsg);
+      return row;
+    }
+
+    // ================================================================
+    // LEADERBOARD
+    // ================================================================
+    function renderLeaderboard() {
+      const ratings = loadRatings();
+      const ranked = Object.entries(ratings)
+        .filter(([, r]) => r.count > 0)
+        .map(([name, r]) => ({ name, avg: r.total / r.count, count: r.count }))
+        .sort((a, b) => b.avg - a.avg || b.count - a.count)
+        .slice(0, 10);
+
+      lbList.innerHTML = '';
+      if (!ranked.length) {
+        lbList.innerHTML = '<div class="lb-empty"><span class="emoji">⭐</span>Rate names to see them here</div>';
+        return;
+      }
+
+      const medals = ['gold','silver','bronze'];
+      ranked.forEach((item, i) => {
+        const el   = document.createElement('div');
+        el.className = 'lb-item';
+
+        const rank = document.createElement('div');
+        rank.className = 'lb-rank' + (i < 3 ? ' ' + medals[i] : '');
+        rank.textContent = i < 3 ? ['🥇','🥈','🥉'][i] : `#${i + 1}`;
+
+        const name = document.createElement('div');
+        name.className = 'lb-name';
+        name.textContent = item.name;
+
+        const stars = document.createElement('div');
+        stars.className = 'lb-stars';
+        for (let s = 1; s <= 5; s++) {
+          const st = document.createElement('span');
+          st.className = 'lb-star' + (s <= Math.round(item.avg) ? ' filled' : '');
+          st.textContent = '★';
+          stars.appendChild(st);
+        }
+
+        const info = document.createElement('div');
+        info.className = 'lb-info';
+        info.innerHTML = `<span class="lb-avg">${item.avg.toFixed(1)}</span><span class="lb-votes">${item.count} vote${item.count !== 1 ? 's' : ''}</span>`;
+
+        el.appendChild(rank);
+        el.appendChild(name);
+        el.appendChild(stars);
+        el.appendChild(info);
+        lbList.appendChild(el);
+      });
+    }
+
+    // ================================================================
+    // STATS
+    // ================================================================
+    function updateStats() {
+      statMode.textContent     = customNamesEl.value.trim() ? 'Custom' : 'Default';
+      statGenerated.textContent = generatedCount;
+      updateVotesLeft();
+    }
+    function updateVotesLeft() {
+      statVotesLeft.textContent = votesRemaining();
+    }
+
+    // ================================================================
+    // RENDER RESULTS
+    // ================================================================
+    function renderSingle(name) {
+      resultSection.classList.remove('visible');
+      resultSection.innerHTML = '';
+      requestAnimationFrame(() => {
+        const label = document.createElement('div');
+        label.className = 'result-label';
+        label.textContent = 'Generated Name';
+
+        const box = document.createElement('div');
+        box.className = 'result-single';
+
+        const top = document.createElement('div');
+        top.className = 'result-single-top';
+
+        const nameEl = document.createElement('div');
+        nameEl.className = 'result-name';
+        nameEl.textContent = name;
+
+        top.appendChild(nameEl);
+        top.appendChild(makeCopyBtn(() => name));
+        box.appendChild(top);
+        box.appendChild(buildStarWidget(name));
+
+        resultSection.appendChild(label);
+        resultSection.appendChild(box);
+        resultSection.classList.add('visible');
+
+        requestAnimationFrame(() => {
+          box.classList.add('flash');
+          box.addEventListener('animationend', () => box.classList.remove('flash'), { once: true });
+        });
+      });
+    }
+
+    function renderMultiple(names) {
+      resultSection.classList.remove('visible');
+      resultSection.innerHTML = '';
+      requestAnimationFrame(() => {
+        const label = document.createElement('div');
+        label.className = 'result-label';
+        label.textContent = `${names.length} Generated Names`;
+
+        const list = document.createElement('div');
+        list.className = 'result-multi';
+
+        names.forEach((name, i) => {
+          const item = document.createElement('div');
+          item.className = 'multi-name-item';
+          item.style.animationDelay = `${i * 55}ms`;
+
+          const row = document.createElement('div');
+          row.className = 'multi-name-row';
+
+          const left = document.createElement('div');
+          left.className = 'multi-name-left';
+
+          const idx = document.createElement('span');
+          idx.className = 'multi-name-index';
+          idx.textContent = `#${i + 1}`;
+
+          const nameEl = document.createElement('span');
+          nameEl.className = 'multi-name-text';
+          nameEl.textContent = name;
+
+          left.appendChild(idx);
+          left.appendChild(nameEl);
+          row.appendChild(left);
+          row.appendChild(makeCopyBtn(() => name, true));
+
+          item.appendChild(row);
+          item.appendChild(buildStarWidget(name));
+          list.appendChild(item);
+        });
+
+        const copyAll = document.createElement('button');
+        copyAll.className = 'copy-all-btn';
+        copyAll.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy All`;
+        copyAll.addEventListener('click', () => copyToClipboard(names.join('\n'), copyAll));
+
+        resultSection.appendChild(label);
+        resultSection.appendChild(list);
+        resultSection.appendChild(copyAll);
+        resultSection.classList.add('visible');
+      });
+    }
+
+    // ================================================================
+    // COPY
+    // ================================================================
+    function makeCopyBtn(textFn, small = false) {
+      const btn = document.createElement('button');
+      btn.className = 'copy-btn-inline';
+      btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>${small ? '' : ' Copy'}`;
+      btn.setAttribute('aria-label', 'Copy');
+      btn.addEventListener('click', () => copyToClipboard(textFn(), btn));
+      return btn;
+    }
+
+    function copyToClipboard(text, btn) {
+      const orig = btn.innerHTML;
+      const ok   = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
+      navigator.clipboard.writeText(text).then(() => {
+        btn.innerHTML = ok; btn.classList.add('copied');
+        setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('copied'); }, 1800);
+      }).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.style.cssText = 'position:fixed;opacity:0';
+        document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+        document.body.removeChild(ta);
+        btn.innerHTML = ok; btn.classList.add('copied');
+        setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('copied'); }, 1500);
+      });
+    }
+
+    // ================================================================
+    // EVENTS
+    // ================================================================
+    btnOne.addEventListener('click', () => {
+      const pool = getPool();
+      if (!pool.length) { alert('No names available.'); return; }
+      const [name] = pickRandom(pool, 1);
+      generatedCount++;
+      updateStats();
+      renderSingle(name);
+    });
+
+    btnFive.addEventListener('click', () => {
+      const pool = getPool();
+      if (!pool.length) { alert('No names available.'); return; }
+      generatedCount += 5;
+      updateStats();
+      renderMultiple(pickRandom(pool, 5));
+    });
+
+    clearInputBtn.addEventListener('click', () => { customNamesEl.value = ''; updateStats(); });
+    customNamesEl.addEventListener('input', updateStats);
+
+    genderFilter.addEventListener('click', e => {
+      const chip = e.target.closest('.filter-chip');
+      if (!chip) return;
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      activeGender = chip.dataset.gender;
+      updateStats();
+    });
+
+    lbClearBtn.addEventListener('click', () => {
+      if (!confirm('Reset all ratings and vote history?')) return;
+      localStorage.removeItem(LS_RATINGS);
+      localStorage.removeItem(LS_VOTED);
+      localStorage.removeItem(LS_VCOUNT);
+      renderLeaderboard();
+      updateVotesLeft();
+      resultSection.innerHTML = '';
+      resultSection.classList.remove('visible');
+    });
+
+    // ================================================================
+    // INIT
+    // ================================================================
+    updateStats();
+    renderLeaderboard();
+  </script>
+</body>
+</html>

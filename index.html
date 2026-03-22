@@ -39,16 +39,13 @@
 
     /* AD PLACEHOLDERS */
     #top-ad, #bottom-ad {
-      width: 100%; max-width: 728px; min-height: 90px;
-      background: var(--surface); border: 1px dashed var(--border);
-      border-radius: var(--radius); display: flex; align-items: center; justify-content: center;
-      color: var(--text-muted); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
-      margin: 24px auto 0;
+      width: 100%; max-width: 728px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 24px auto 0; overflow: hidden;
     }
-    /* === INSERT TOP BANNER AD SCRIPT INSIDE #top-ad === */
-    #top-ad { margin-bottom: 0; }
+    #top-ad { margin-bottom: 0; min-height: 90px; }
     /* === INSERT BOTTOM BANNER AD SCRIPT INSIDE #bottom-ad === */
-    #bottom-ad { margin-top: 24px; }
+    #bottom-ad { margin-top: 24px; min-height: 90px; }
 
     /* HEADER */
     header { width: 100%; max-width: 700px; text-align: center; padding: 52px 0 32px; }
@@ -299,10 +296,10 @@
 </head>
 <body>
 
-  <!-- TOP AD BANNER -->
+  <!-- TOP AD BANNER — PropellerAds -->
   <div id="top-ad">
-    <!-- INSERT TOP BANNER AD SCRIPT HERE -->
-    Advertisement (728×90)
+    <script>atOptions={'key':'1e7f1d895210e7d59e5362ee36520eaa','format':'iframe','height':90,'width':728,'params':{}};</script>
+    <script src="https://www.highperformanceformat.com/1e7f1d895210e7d59e5362ee36520eaa/invoke.js"></script>
   </div>
 
   <!-- HEADER -->
@@ -382,10 +379,10 @@
     </div>
   </main>
 
-  <!-- BOTTOM AD BANNER -->
+  <!-- BOTTOM AD BANNER — Adsterra -->
   <div id="bottom-ad">
-    <!-- INSERT BOTTOM BANNER AD SCRIPT HERE -->
-    Advertisement (728×90)
+    <script>atOptions={'key':'1e7f1d895210e7d59e5362ee36520eaa','format':'iframe','height':90,'width':728,'params':{}};</script>
+    <script src="https://www.highperformanceformat.com/1e7f1d895210e7d59e5362ee36520eaa/invoke.js"></script>
   </div>
 
   <footer>&copy; 2025 Random Name Generator</footer>
@@ -899,6 +896,8 @@
       localStorage.removeItem(LS_RATINGS);
       localStorage.removeItem(LS_VOTED);
       localStorage.removeItem(LS_VCOUNT);
+      localStorage.removeItem('rng_seeded');
+      seedRatings();
       renderLeaderboard();
       updateVotesLeft();
       resultSection.innerHTML = '';
@@ -906,8 +905,61 @@
     });
 
     // ================================================================
+    // SEED RATINGS — auto-generate for ALL names, runs once
+    // ================================================================
+    function seedRatings() {
+      if (localStorage.getItem('rng_seeded') === 'v2') return;
+
+      // Names with hand-crafted popular scores
+      const featured = {
+        'Oliver':4.8,'Emma':4.9,'Sophia':4.9,'Liam':4.8,'Charlotte':4.8,
+        'Noah':4.9,'Olivia':4.8,'Elijah':4.7,'Amelia':4.8,'Lucas':4.8,
+        'Ava':4.6,'Ethan':4.6,'Isabella':4.6,'Mason':4.6,'Mia':4.6,
+        'James':4.6,'Luna':4.6,'Logan':4.6,'Harper':4.5,'Benjamin':4.5,
+        'Ella':4.5,'Aiden':4.4,'Scarlett':4.4,'Jack':4.4,'Aria':4.4,
+        'Carter':4.4,'Chloe':4.4,'Sebastian':4.3,'Penelope':4.3,'William':4.3,
+        'Grace':4.2,'Henry':4.2,'Violet':4.1,'Owen':4.1,'Lily':4.1,
+        'Wyatt':4.0,'Zoey':3.8,'Julian':3.9,'Hannah':3.8,'Grayson':3.9,
+        'Aurora':4.7,'Willow':4.5,'Iris':4.3,'Hazel':4.4,'Nova':4.6,
+        'Maverick':4.2,'Atticus':4.3,'Atlas':4.1,'Finn':4.4,'Jasper':4.3,
+      };
+
+      // Votes range by tier
+      function votesForAvg(avg) {
+        if (avg >= 4.7) return Math.floor(Math.random() * 20 + 38); // 38–57
+        if (avg >= 4.4) return Math.floor(Math.random() * 15 + 22); // 22–36
+        if (avg >= 4.0) return Math.floor(Math.random() * 12 + 10); // 10–21
+        return Math.floor(Math.random() * 8 + 3);                   // 3–10
+      }
+
+      // Pseudo-random but deterministic avg for unknown names
+      function hashAvg(name) {
+        let h = 0;
+        for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) & 0xffffffff;
+        // Map to 3.0–4.6 range
+        return 3.0 + ((Math.abs(h) % 160) / 100);
+      }
+
+      const allNames = [...NAMES.male, ...NAMES.female];
+      const ratings  = {};
+
+      allNames.forEach(name => {
+        const avg    = featured[name] !== undefined ? featured[name] : hashAvg(name);
+        const count  = votesForAvg(avg);
+        // Add tiny natural noise so totals aren't perfectly round
+        const noise  = (Math.random() - 0.5) * 0.15;
+        const total  = Math.round((avg + noise) * count);
+        ratings[name] = { total: Math.max(total, count), count };
+      });
+
+      saveRatings(ratings);
+      localStorage.setItem('rng_seeded', 'v2');
+    }
+
+    // ================================================================
     // INIT
     // ================================================================
+    seedRatings();
     updateStats();
     renderLeaderboard();
   </script>
